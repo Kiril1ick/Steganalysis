@@ -22,5 +22,11 @@ namespace Steganalysis
             LSB1 lsb = new LSB1();
             lsb.Show();
         }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            LSB2 lsb = new LSB2();
+            lsb.Show();
+        }
     }
 }
