@@ -28,5 +28,11 @@ namespace Steganalysis
             LSB2 lsb = new LSB2();
             lsb.Show();
         }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            Koch lsb = new Koch();
+            lsb.Show();
+        }
     }
 }
