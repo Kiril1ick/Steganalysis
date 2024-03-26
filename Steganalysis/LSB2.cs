@@ -35,19 +35,25 @@ namespace Steganalysis
         {
             RSAnalysis rsa = new RSAnalysis(2, 2);
             Bitmap image = new Bitmap(pictureBox1.Image);
+            pictureBox2.Image = Lsb1Analis.drawPic(image);
             double average = 0;
             double[] results = rsa.doAnalysis(image, RSAnalysis.ANALYSIS_COLOUR_RED, true);
-            Console.WriteLine("Result from red: " + results[26]);
+            label6.Text = results[26].ToString();
             average += results[26];
             results = rsa.doAnalysis(image, RSAnalysis.ANALYSIS_COLOUR_GREEN, true);
-            Console.WriteLine("Result from green: " + results[26]);
+            label7.Text = results[26].ToString();
             average += results[26];
             results = rsa.doAnalysis(image, RSAnalysis.ANALYSIS_COLOUR_BLUE, true);
-            Console.WriteLine("Result from blue: " + results[26]);
+            label8.Text = results[26].ToString();
             average += results[26];
             average = average / 3;
-            label1.Text = "Average result: " + average;
+            label1.Text = average.ToString();
             Console.WriteLine();
+        }
+
+        private void tableLayoutPanel5_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }

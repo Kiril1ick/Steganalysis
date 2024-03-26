@@ -30,8 +30,16 @@ namespace Steganalysis
 
         private void button2_Click(object sender, EventArgs e)
         {
-            ZhaoKoch alg = new ZhaoKoch();
-            alg.doAnalysis(pictureBox1.Image);
+
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            ZhaoKoch alg = new ZhaoKoch(comboBox1.SelectedItem.ToString());
+            double[] result = alg.chartData(pictureBox1.Image);
+            double zapoln = alg.testAnalys(result);
+            label3.Text = zapoln.ToString();
+            chart1.Series[0].Points.DataBindY(result);
         }
     }
 }

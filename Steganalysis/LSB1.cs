@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace Steganalysis
 {
@@ -38,7 +39,14 @@ namespace Steganalysis
             greenPictureBox.Image = Lsb1Analis.drawPic(img, "green");
             bluePictureBox.Image = Lsb1Analis.drawPic(img, "blue");
             double[] result = Lsb1Analis.analisys(img);
+            chart1.ChartAreas[0].AxisX.Maximum = 1;
             chart1.Series[0].Points.DataBindY(result);
+            Axis ax = new Axis();
+            ax.Title = "Сторока";
+            Axis ay = new Axis();
+            ay.Title = "Вероятность";
+            chart1.ChartAreas[0].AxisX = ax;
+            chart1.ChartAreas[0].AxisY = ay;
             double zapoln = 0;
             for(int i = 0; i < result.Length; i++)
             {

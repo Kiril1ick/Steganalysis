@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
 namespace Steganalysis
 {
@@ -15,60 +18,100 @@ namespace Steganalysis
 
         Point p1;
         Point p2;
-        public ZhaoKoch(int size = 8, string component = "Blue")
+        public ZhaoKoch(string size, string component = "Blue")
         {
-            SizeOfSegment = size;
+            SizeOfSegment = DetermineSizeOfSegment(size);
+            DeterminePointsOfCoefficients();
             ComponentOfEmbedding = component;
         }
 
-        public string doAnalysis(Image modifImage)
+        private int DetermineSizeOfSegment(string size)
+        {
+            int result = 0;
+            switch (size)
+            {
+                case "2x2":
+                    result = 2;
+                    break;
+                case "4x4":
+                    result = 4;
+                    break;
+                case "8x8":
+                    result = 8;
+                    break;
+
+            }
+            return result;
+        }
+
+        public double[] chartData(Image modifImage)
         {
             Bitmap modifPicture = new Bitmap(modifImage);
             sendMessToConsol("Start analysis...");
-            string result = null;
-            try
-            {
-                int x = modifPicture.Width;
-                int y = modifPicture.Height;
+            int x = modifPicture.Width;
+            int y = modifPicture.Height;
 
-                Byte[,] ArrayForEmbedding = new Byte[x, y];
-                for (int i = 0; i < x; i++)
+            Byte[,] ArrayForEmbedding = new Byte[x, y];
+            for (int i = 0; i < x; i++)
+            {
+                for (int j = 0; j < y; j++)
                 {
-                    for (int j = 0; j < y; j++)
+                    if (ComponentOfEmbedding == "Blue")
                     {
-                        if (ComponentOfEmbedding == "Blue")
-                        {
-                            ArrayForEmbedding[i, j] = modifPicture.GetPixel(i, j).B;
-                        }
-                        else if (ComponentOfEmbedding == "Green")
-                        {
-                            ArrayForEmbedding[i, j] = modifPicture.GetPixel(i, j).G;
-                        }
-                        else
-                        {
-                            ArrayForEmbedding[i, j] = modifPicture.GetPixel(i, j).R;
-                        }
+                        ArrayForEmbedding[i, j] = modifPicture.GetPixel(i, j).B;
+                    }
+                    else if (ComponentOfEmbedding == "Green")
+                    {
+                        ArrayForEmbedding[i, j] = modifPicture.GetPixel(i, j).G;
+                    }
+                    else
+                    {
+                        ArrayForEmbedding[i, j] = modifPicture.GetPixel(i, j).R;
                     }
                 }
-
-                int Nc = x * y / (SizeOfSegment * SizeOfSegment); //общее число сегментов
-                List<byte[,]> C = new List<byte[,]>();
-
-                sendMessToConsol("Segmentation of image components...");
-                separation(ArrayForEmbedding, C, x, y, SizeOfSegment);
-                sendMessToConsol("Discrete cosine transform performance...");
-                List<double[,]> DKP = new List<double[,]>();
-                foreach (byte[,] b in C)
-                {
-                    DKP.Add(dkp(b));
-                }
-
-                int a = 0;
             }
-            catch (Exception e)
+
+            int Nc = x * y / (SizeOfSegment * SizeOfSegment); //общее число сегментов
+            List<byte[,]> C = new List<byte[,]>();
+
+            sendMessToConsol("Segmentation of image components...");
+            separation(ArrayForEmbedding, C, x, y, SizeOfSegment);
+            sendMessToConsol("Discrete cosine transform performance...");
+            List<double[,]> DKP = new List<double[,]>();
+            foreach (byte[,] b in C)
             {
-                return "Failed to analysis.";
+                DKP.Add(dkp(b));
             }
+
+            double[] c = new double[DKP.Count];
+            int iter = 0;
+            foreach (double[,] b in DKP)
+            {
+                double result = TestFoo(b);
+                c[iter] = result;
+                iter++;
+            }
+
+            return c;
+        }
+
+        public double testAnalys(double[] data)
+        {
+            double result = 0;
+
+            Dictionary<int, int> value = new Dictionary<int, int>();
+
+            for(int i =0; i < data.Length; i++)
+            {
+                if (value.ContainsKey(((int)data[i]))) value[(int)data[i]]++;
+                else if ((int)data[i] >= 24) value.Add((int)data[i],1);
+            }
+            var sortedValue = from entry in value orderby entry.Value descending select entry;
+
+            var a = sortedValue.ElementAt(0);
+            var b = sortedValue.ElementAt(1);
+            result = (a.Value+b.Value)/(double)data.Length;
+
             return result;
         }
         byte[,] submatrix(byte[,] one, int a, int b, int c, int d)
@@ -129,6 +172,33 @@ namespace Steganalysis
         private void sendMessToConsol(String mess)
         {
             Console.WriteLine(mess);
+        }
+
+
+        double TestFoo(double[,] bloc)
+        {
+            double result = Math.Abs(Math.Abs(bloc[p1.X, p1.Y]) - Math.Abs(bloc[p2.X, p2.Y]));
+
+            return result;
+        }
+
+        private void DeterminePointsOfCoefficients()
+        {
+            if (SizeOfSegment == 2)
+            {
+                p1 = new Point(1, 0);
+                p2 = new Point(1, 1);
+            }
+            else if (SizeOfSegment == 4)
+            {
+                p1 = new Point(3, 2);
+                p2 = new Point(2, 3);
+            }
+            else
+            {
+                p1 = new Point(6, 3);
+                p2 = new Point(3, 6);
+            }
         }
 
     }
