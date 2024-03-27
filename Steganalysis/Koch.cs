@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace Steganalysis
 {
@@ -22,7 +23,7 @@ namespace Steganalysis
             if (pictureBox1.Image != null) pictureBox1.Image.Dispose();
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Multiselect = false;
-            if (dialog.ShowDialog() == DialogResult.OK) // if user clicked OK
+            if (dialog.ShowDialog() == DialogResult.OK) 
             {
                 pictureBox1.Image = new Bitmap(dialog.FileName); ;
             }
@@ -39,6 +40,12 @@ namespace Steganalysis
             double[] result = alg.chartData(pictureBox1.Image);
             double zapoln = alg.testAnalys(result);
             label3.Text = zapoln.ToString();
+            Axis ax = new Axis();
+            ax.Title = "Блок изображение";
+            Axis ay = new Axis();
+            ay.Title = "Значение абсолютной разности коэффициентов";
+            chart1.ChartAreas[0].AxisX = ax;
+            chart1.ChartAreas[0].AxisY = ay;
             chart1.Series[0].Points.DataBindY(result);
         }
     }
