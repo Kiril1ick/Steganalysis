@@ -38,8 +38,8 @@ namespace Steganalysis
         {
             ZhaoKoch alg = new ZhaoKoch(comboBox1.SelectedItem.ToString());
             double[] result = alg.chartData(pictureBox1.Image);
-            double zapoln = alg.testAnalys(result);
-            label3.Text = zapoln.ToString();
+            double[] zapoln = alg.testAnalys(result);
+            label2.Text = zapoln[0].ToString();
             Axis ax = new Axis();
             ax.Title = "Блок изображение";
             Axis ay = new Axis();
@@ -47,6 +47,7 @@ namespace Steganalysis
             chart1.ChartAreas[0].AxisX = ax;
             chart1.ChartAreas[0].AxisY = ay;
             chart1.Series[0].Points.DataBindY(result);
+            label5.Text = zapoln[1].ToString();
         }
     }
 }

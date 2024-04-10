@@ -95,9 +95,9 @@ namespace Steganalysis
             return c;
         }
 
-        public double testAnalys(double[] data)
+        public double[] testAnalys(double[] data)
         {
-            double result = 0;
+            double[] result = new double[2];
 
             Dictionary<int, int> value = new Dictionary<int, int>();
 
@@ -110,7 +110,8 @@ namespace Steganalysis
 
             var a = sortedValue.ElementAt(0);
             var b = sortedValue.ElementAt(1);
-            result = (a.Value+b.Value)/(double)data.Length;
+            result[0] = (a.Value+b.Value)/(double)data.Length;
+            result[1] = a.Key;
 
             return result;
         }
