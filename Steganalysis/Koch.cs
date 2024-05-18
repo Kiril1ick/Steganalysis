@@ -25,7 +25,14 @@ namespace Steganalysis
             dialog.Multiselect = false;
             if (dialog.ShowDialog() == DialogResult.OK) 
             {
-                pictureBox1.Image = new Bitmap(dialog.FileName); ;
+                try
+                {
+                    pictureBox1.Image = new Bitmap(dialog.FileName);
+                }
+                catch
+                {
+                    return;
+                }
             }
         }
 
@@ -36,9 +43,10 @@ namespace Steganalysis
 
         private void button2_Click_1(object sender, EventArgs e)
         {
+            if (pictureBox1.Image == null || comboBox1.SelectedItem == null) return;
             ZhaoKoch alg = new ZhaoKoch(comboBox1.SelectedItem.ToString());
             double[] result = alg.chartData(pictureBox1.Image);
-            double[] zapoln = alg.testAnalys(result);
+            double[] zapoln = alg.Analys(result);
             label2.Text = zapoln[0].ToString();
             Axis ax = new Axis();
             ax.Title = "Блок изображение";
@@ -47,7 +55,6 @@ namespace Steganalysis
             chart1.ChartAreas[0].AxisX = ax;
             chart1.ChartAreas[0].AxisY = ay;
             chart1.Series[0].Points.DataBindY(result);
-            label5.Text = zapoln[1].ToString();
         }
     }
 }

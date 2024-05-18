@@ -27,12 +27,20 @@ namespace Steganalysis
             if (dialog.ShowDialog() == DialogResult.OK) // if user clicked OK
             {
                 data = dialog.FileName.Length;
-                pictureBox1.Image = new Bitmap(dialog.FileName); ;
+                try
+                {
+                    pictureBox1.Image = new Bitmap(dialog.FileName);
+                }
+                catch
+                {
+                    return;
+                }
             }
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
+            if (pictureBox1.Image == null) return;
             RSAnalysis rsa = new RSAnalysis(2, 2);
             Bitmap image = new Bitmap(pictureBox1.Image);
             pictureBox2.Image = Lsb1Analis.drawPic(image);

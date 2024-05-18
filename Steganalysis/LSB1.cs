@@ -24,16 +24,25 @@ namespace Steganalysis
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Multiselect = false;
             int data = 0;
-            if (dialog.ShowDialog() == DialogResult.OK) // if user clicked OK
+            if (dialog.ShowDialog() == DialogResult.OK)
             {
                 data = dialog.FileName.Length;
-                pictureBox1.Image = new Bitmap(dialog.FileName); ;
+                try 
+                { 
+                    pictureBox1.Image = new Bitmap(dialog.FileName); 
+                }
+                catch
+                {
+                    return;
+                }
+                
             }
             
         }
 
         private void Analisys_Click(object sender, EventArgs e)
         {
+            if (pictureBox1.Image == null) return;
             Bitmap img = new Bitmap(pictureBox1.Image);
             redPictureBox.Image =  Lsb1Analis.drawPic(img, "red");
             greenPictureBox.Image = Lsb1Analis.drawPic(img, "green");
@@ -50,12 +59,12 @@ namespace Steganalysis
             double zapoln = 0;
             for(int i = 0; i < result.Length; i++)
             {
-                if (result[i]>0.5) zapoln++;
+                if (result[i]>0.6) zapoln++;
             }
             zapoln = zapoln/result.Length;
             for (int i=0;i<img.Height;i++)
             {
-                if (result[i] > 0.5)
+                if (result[i] > 0.6)
                 {
                     for(int j = 0; j < img.Width; j++)
                     {

@@ -9,6 +9,7 @@ namespace Steganalysis
 {
     internal class ChiSquare
     {
+
         public static double[] chiSquareAttackLeftToRight(Bitmap img)
         {
             int width = img.Width;
@@ -49,12 +50,12 @@ namespace Steganalysis
         public static double[] ChiSqTest(int[] observed,
       double[] expected)
         {
-            // 1. compute chi-square statistic
+            // 1. вычислить статистику хи-квадрат
             double x = ChiSqStat(observed, expected);
-            // 2. compute the p-val
+            // 2. вычисление вероятности
             int df = observed.Length - 1;
             double pVal = ChiSqPval(x, df);
-            // 3. return both values
+            // 3. возвращает оба значения
             double[] result = new double[] { x, pVal };
             return result;
         } // ChiSqTest
@@ -74,23 +75,22 @@ namespace Steganalysis
 
         public static double ChiSqPval(double x, int df)
         {
-            // ACM Algorithm #299
             if (x <= 0.0 || df < 1)
                 throw new Exception("Bad arg in ChiSqPval()");
 
-            double a = 0.0; // 299 variable names
+            double a = 0.0; 
             double y = 0.0;
             double s = 0.0;
             double z = 0.0;
-            double ee = 0.0; // change from e
+            double ee = 0.0;
             double c;
 
-            bool even; // is df even?
+            bool even;
 
             a = 0.5 * x;
             if (df % 2 == 0) even = true; else even = false;
 
-            if (df > 1) y = Exp(-a); // ACM update remark (4)
+            if (df > 1) y = Exp(-a);
 
             if (even == true) s = y;
             else s = 2.0 * Gauss(-Math.Sqrt(x));
@@ -99,15 +99,15 @@ namespace Steganalysis
             {
                 x = 0.5 * (df - 1.0);
                 if (even == true) z = 1.0; else z = 0.5;
-                if (a > 40.0) // ACM remark (5)
+                if (a > 40.0)
                 {
                     if (even == true) ee = 0.0;
                     else ee = 0.5723649429247000870717135; // log(sqrt(pi))
-                    c = Math.Log(a); // log base e
+                    c = Math.Log(a); // log e
                     while (z <= x)
                     {
                         ee = Math.Log(z) + ee;
-                        s = s + Exp(c * z - a - ee); // ACM update remark (6)
+                        s = s + Exp(c * z - a - ee);
                         z = z + 1.0;
                     }
                     return s;
@@ -119,7 +119,7 @@ namespace Steganalysis
                     c = 0.0;
                     while (z <= x)
                     {
-                        ee = ee * (a / z); // ACM update remark (7)
+                        ee = ee * (a / z);
                         c = c + ee;
                         z = z + 1.0;
                     }
@@ -130,22 +130,22 @@ namespace Steganalysis
             {
                 return s;
             }
-        } // ChiSqPval()
+        } 
 
-        private static double Exp(double x) // ACM update remark (3)
+        private static double Exp(double x) 
         {
-            if (x < -40.0) // ACM update remark (8)
+            if (x < -40.0)
                 return 0.0;
             else
                 return Math.Exp(x);
         }
 
+        // Функция гауса
         public static double Gauss(double z)
         {
-            // ACM Algorithm #209
-            double y; // 209 scratch variable
-            double p; // result. called 'z' in 209
-            double w; // 209 scratch variable
+            double y;
+            double p;
+            double w;
 
             if (z == 0.0)
                 p = 0.0;

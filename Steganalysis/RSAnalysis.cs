@@ -9,60 +9,44 @@ namespace Steganalysis
 {
     internal class RSAnalysis
     {
-        //VARIABLES
+        //Переменные
 
-        /**
-         * Denotes analysis to be done with red.
-         */
+        // Анализ красного канала
         public static int ANALYSIS_COLOUR_RED = 0;
 
-        /**
-         * Denotes analysis to be done with green.
-         */
+        // Анализ зеленого канала
         public static int ANALYSIS_COLOUR_GREEN = 1;
 
-        /**
-         * Denotes analysis to be done with blue.
-         */
+        // Анализ синего канала
         public static int ANALYSIS_COLOUR_BLUE = 2;
 
-        /**
-         * The mask to be used for the pixel groups.
-         */
+        // Использованная маска для групп
         private int[][] mMask;
 
-        /**
-         * The x length of the mask.
-         */
+        // Длина маски по оси x.
         private int mM;
 
-        /**
-         * The y length of the mask.
-         */
+        // Длина маски по оси y.
         private int mN;
         //CONSTRUCTORS
 
         /**
-         * Creates a new RS analysis with a given mask size of m x n.
+         * Создает новый RS-анализ с заданным размером маски m x n.
          *
-         * Each alternating bit is set to 1.  Eg for a mask of size 2x2
-         * the resulting mask will be {1,0;0,1}.  Two masks are used - one is
-         * the inverse of the other.
-         *
-         * @param m The x mask size.
-         * @param n The y mask size.
+         * Каждый переменный бит имеет значение 1. Например, для маски размером 2x2 результирующая маска будет равна {1,0;0,1}. 
+         * Используются две маски, одна из которых является обратной по отношению к другой.
          */
         public RSAnalysis(int m, int n)
         {
 
-            //two masks
+            //две маски
             mMask = new int[2][];
             for (int i = 0; i < mMask.Length; i++)
             {
                 mMask[i] = new int[m*n];
             }
 
-            //iterate through them and set alternating bits
+            //прохождение по маскам и установка чередующихся бит
             int k = 0;
             for (int i = 0; i < n; i++)
             {
@@ -83,29 +67,18 @@ namespace Steganalysis
                 }
             }
 
-            //set up the mask size.
+            //установка размера маски.
             mM = m;
             mN = n;
         }
 
 
-        //FUNCTIONS
 
-        /**
-         * Does an RS analysis of a given image.  
-         * <P>
-         * The analysis data returned is specified by name in
-         * the getResultNames() method.
-         *
-         * @param image The image to analyse.
-         * @param colour The colour to analyse.
-         * @param overlap Whether the blocks should overlap or not.
-         * @return The analysis information.
-         */
+        // Выполняет RS-анализ изображения.
         public double[] doAnalysis(Bitmap image, int colour, bool overlap)
         {
 
-            //get the images sizes
+            //получает размер изображения
             int imgx = image.Width, imgy = image.Height;
 
             int startx = 0, starty = 0;
@@ -117,10 +90,9 @@ namespace Steganalysis
 
             while (startx < imgx && starty < imgy)
             {
-                //this is done once for each mask...
                 for (int m = 0; m < 2; m++)
                 {
-                    //get the block of data	
+                    //получение блока данных
                     int k = 0;
                     for (int i = 0; i < mN; i++)
                     {
@@ -131,13 +103,13 @@ namespace Steganalysis
                         }
                     }
 
-                    //get the variation the block
+                    //получение вариации блока
                     variationB = getVariation(block, colour);
 
-                    //now flip according to the mask
+                    // замена блока
                     block = flipBlock(block, mMask[m]);
                     variationP = getVariation(block, colour);
-                    //flip it back
+                    //обратная замена
                     block = flipBlock(block, mMask[m]);
 
                     //negative mask
@@ -145,9 +117,9 @@ namespace Steganalysis
                     variationN = getNegativeVariation(block, colour, mMask[m]);
                     mMask[m] = invertMask(mMask[m]);
 
-                    //now we need to work out which group each belongs to
+                    //Определение группы блока
 
-                    //positive groupings
+                    //обычяная маска
                     if (variationP > variationB)
                         numregular++;
                     if (variationP < variationB)
@@ -155,7 +127,7 @@ namespace Steganalysis
                     if (variationP == variationB)
                         numunusable++;
 
-                    //negative mask groupings
+                    //обратная маска
                     if (variationN > variationB)
                         numnegreg++;
                     if (variationN < variationB)
@@ -163,9 +135,8 @@ namespace Steganalysis
                     if (variationN == variationB)
                         numnegunusable++;
 
-                    //now we keep going...
                 }
-                //get the next position
+                //переход к следующему
                 if (overlap)
                     startx += 1;
                 else
@@ -183,13 +154,13 @@ namespace Steganalysis
                     break;
             }
 
-            //get all the details needed to derive x...
+            // расчет x
             double totalgroups = numregular + numsingular + numunusable;
             double[] allpixels = getAllPixelFlips(image, colour, overlap);
             double x = getX(numregular, numnegreg, allpixels[0], allpixels[2],
                     numsingular, numnegsing, allpixels[1], allpixels[3]);
 
-            //calculate the estimated percent of flipped pixels and message length
+            //рассчет предполагаемого процента перевернутых пикселей и длины сообщения
             double epf, ml;
             if (2 * (x - 1) == 0)
                 epf = 0;
@@ -201,12 +172,10 @@ namespace Steganalysis
             else
                 ml = Math.Abs(x / (x - 0.5));
 
-            //now we have the number of regular and singular groups...
+            //количество групп
             double[] results = new double[28];
 
-            //save them all...
-
-            //these results
+            //сохранение результата
             results[0] = numregular;
             results[1] = numsingular;
             results[2] = numnegreg;
@@ -220,7 +189,7 @@ namespace Steganalysis
             results[10] = (results[4] / totalgroups) * 100;
             results[11] = (results[5] / totalgroups) * 100;
 
-            //all pixel results
+            //результат всех пикселей
             results[12] = allpixels[0];
             results[13] = allpixels[1];
             results[14] = allpixels[2];
@@ -234,7 +203,7 @@ namespace Steganalysis
             results[22] = (results[16] / totalgroups) * 100;
             results[23] = (results[17] / totalgroups) * 100;
 
-            //overall results
+            //общие результаты
             results[24] = totalgroups;
             results[25] = epf;
             results[26] = ml;
@@ -244,8 +213,7 @@ namespace Steganalysis
         }
 
         /**
-         * Gets the x value for the p=x(x/2) RS equation. See the paper for
-         * more details.
+         * Возвращает значение x для уравнения p=x(x/2) RS.
          *
          * @param r The value of Rm(p/2).
          * @param rm The value of R-m(p/2).
@@ -261,30 +229,26 @@ namespace Steganalysis
                 double s, double sm, double s1, double sm1)
         {
 
-            double x = 0; //the cross point.
+            double x = 0; //точка пересечения
 
             double dzero = r - s; // d0 = Rm(p/2) - Sm(p/2)
             double dminuszero = rm - sm; // d-0 = R-m(p/2) - S-m(p/2)
             double done = r1 - s1; // d1 = Rm(1-p/2) - Sm(1-p/2)
             double dminusone = rm1 - sm1; // d-1 = R-m(1-p/2) - S-m(1-p/2)
 
-            //get x as the root of the equation 
+            //получаем x как корень уравнения
             //2(d1 + d0)x^2 + (d-0 - d-1 - d1 - 3d0)x + d0 - d-0 = 0
             //x = (-b +or- sqrt(b^2-4ac))/2a
-            //where ax^2 + bx + c = 0 and this is the form of the equation
+            //где ax ^ 2 + bx + c = 0, и это форма уравнения
 
-            //thanks to a good friend in Dunedin, NZ for helping with maths
-            //and to Miroslav Goljan's fantastic Matlab code
 
             double a = 2 * (done + dzero);
             double b = dminuszero - dminusone - done - (3 * dzero);
             double c = dzero - dminuszero;
 
             if (a == 0)
-                //take it as a straight line
                 x = c / b;
 
-            //take it as a curve
             double discriminant = Math.Pow(b, 2) - (4 * a * c);
 
             if (discriminant >= 0)
@@ -292,7 +256,7 @@ namespace Steganalysis
                 double rootpos = ((-1 * b) + Math.Sqrt(discriminant)) / (2 * a);
                 double rootneg = ((-1 * b) - Math.Sqrt(discriminant)) / (2 * a);
 
-                //return the root with the smallest absolute value (as per paper)
+                //возвращает корень с наименьшим абсолютным значением
                 if (Math.Abs(rootpos) <= Math.Abs(rootneg))
                     x = rootpos;
                 else
@@ -300,7 +264,6 @@ namespace Steganalysis
             }
             else
             {
-                //maybe it's not the curve we think (straight line)
                 double cr = (rm - r) / (r1 - r + rm - rm1);
                 double cs = (sm - s) / (s1 - s + sm - sm1);
                 x = (cr + cs) / 2;
@@ -312,7 +275,6 @@ namespace Steganalysis
                 double aS = ((sm1 - s1 + s - sm) + (sm - s) / x) / (x - 1);
                 if (aS > 0 | ar < 0)
                 {
-                    //let's assume straight lines again...
                     double cr = (rm - r) / (r1 - r + rm - rm1);
                     double cs = (sm - s) / (s1 - s + sm - sm1);
                     x = (cr + cs) / 2;
@@ -322,28 +284,18 @@ namespace Steganalysis
         }
 
 
-        /**
-         * Gets the RS analysis results for flipping performed on all
-         * pixels.
-         *
-         * @param image The image to analyse.
-         * @param colour The colour to analyse.
-         * @param overlap Whether the blocks should overlap.
-         * @return The analysis information for all flipped pixels.
-         */
+        //Получает результаты анализа RS для перелистывания, выполненного для всех пикселей.
         private double[] getAllPixelFlips(Bitmap image, int colour, bool overlap)
         {
 
-            //setup the mask for everything...
+            // общая маска
             int[] allmask = new int[mM * mN];
             for (int i = 0; i < allmask.Length; i++)
             {
                 allmask[i] = 1;
             }
 
-            //now do the same as the doAnalysis() method
-
-            //get the images sizes
+            //получаем размер изобраажения
             int imgx = image.Width, imgy = image.Height;
 
             int startx = 0, starty = 0;
@@ -355,10 +307,9 @@ namespace Steganalysis
 
             while (startx < imgx && starty < imgy)
             {
-                //done once for each mask
                 for (int m = 0; m < 2; m++)
                 {
-                    //get the block of data
+                    //Получение блока данных
                     int k = 0;
                     for (int i = 0; i < mN; i++)
                     {
@@ -369,27 +320,24 @@ namespace Steganalysis
                         }
                     }
 
-                    //flip all the pixels in the block (NOTE: THIS IS WHAT'S DIFFERENT
-                    //TO THE OTHER doAnalysis() METHOD)
+                    // Замена всех пиксели в блоке
                     block = flipBlock(block, allmask);
 
-                    //get the variation the block
+                    // Получение вариации блока
                     variationB = getVariation(block, colour);
 
-                    //now flip according to the mask
+                    // Замена в соответствии с маской
                     block = flipBlock(block, mMask[m]);
                     variationP = getVariation(block, colour);
                     //flip it back
                     block = flipBlock(block, mMask[m]);
 
-                    //negative mask
+                    // Обратная маска
                     mMask[m] = this.invertMask(mMask[m]);
                     variationN = getNegativeVariation(block, colour, mMask[m]);
                     mMask[m] = this.invertMask(mMask[m]);
 
-                    //now we need to work out which group each belongs to
-
-                    //positive groupings
+                    // Группировка
                     if (variationP > variationB)
                         numregular++;
                     if (variationP < variationB)
@@ -397,17 +345,14 @@ namespace Steganalysis
                     if (variationP == variationB)
                         numunusable++;
 
-                    //negative mask groupings
                     if (variationN > variationB)
                         numnegreg++;
                     if (variationN < variationB)
                         numnegsing++;
                     if (variationN == variationB)
                         numnegunusable++;
-
-                    //now we keep going...
                 }
-                //get the next position
+                // Получение следующей позиции
                 if (overlap)
                     startx += 1;
                 else
@@ -425,7 +370,7 @@ namespace Steganalysis
                     break;
             }
 
-            //save all the results (same order as before)
+            // Сохранение результата
             double[] results = new double[4];
 
             results[0] = numregular;
@@ -437,11 +382,7 @@ namespace Steganalysis
         }
 
 
-        /**
-         * Returns an enumeration of all the result names.
-         *
-         * @return The names of all the results.
-         */
+        // Возврат результатов
         public List<string> getResultNames()
         {
             List<string> names = new List<string>(28);
@@ -478,15 +419,9 @@ namespace Steganalysis
 
 
         /**
-         * Gets the variation of the blocks of data. Uses
-         * the formula f(x) = |x0 - x1| + |x1 + x3| + |x3 - x2| + |x2 - x0|;
-         * However, if the block is not in the shape 2x2 or 4x1, this will be
-         * applied as many times as the block can be broken up into 4 (without
-         * overlaps).
-         *
-         * @param block The block of data (in 24 bit colour).
-         * @param colour The colour to get the variation of.
-         * @return The variation in the block.
+         * 
+            Возвращает вариацию блоков данных. Использует формулу f(x) = |x0 - x1| + |x1 + x3| + |x3 - x2| + |x2 - x0|; 
+            Однако, если блок не имеет формы 2x2 или 4x1, это будет применяться столько раз, сколько можно разбить блок на 4 части (без перекрытий).
          */
         private double getVariation(Color[] block, int colour)
         {
@@ -511,18 +446,7 @@ namespace Steganalysis
         }
 
 
-        /**
-         * Gets the negative variation of the blocks of data. Uses
-         * the formula f(x) = |x0 - x1| + |x1 + x3| + |x3 - x2| + |x2 - x0|;
-         * However, if the block is not in the shape 2x2 or 4x1, this will be
-         * applied as many times as the block can be broken up into 4 (without
-         * overlaps).
-         *
-         * @param block The block of data (in 24 bit colour).
-         * @param colour The colour to get the variation of.
-         * @param mask The negative mask.
-         * @return The variation in the block.
-         */
+
         private double getNegativeVariation(Color[] block, int colour, int[] mask)
         {
             double var = 0;
@@ -565,13 +489,8 @@ namespace Steganalysis
         }
 
 
-        /**
-         * Gets the given colour value for this pixel.
-         * 
-         * @param pixel The pixel to get the colour of.
-         * @param colour The colour to get.
-         * @return The colour value of the given colour in the given pixel.
-         */
+        // Получение цвета пикселя.
+
         public int getPixelColour(Color pixel, int colour)
         {
             if (colour == RSAnalysis.ANALYSIS_COLOUR_RED)
@@ -585,52 +504,39 @@ namespace Steganalysis
         }
 
 
-        /**
-         * Flips a block of pixels.
-         *
-         * @param block The block to flip.
-         * @param mask The mask to use for flipping.
-         * @return The flipped block.
-         */
+        // Замена блока
         private Color[] flipBlock(Color[] block, int[] mask)
         {
-            //if the mask is true, negate every LSB
             for (int i = 0; i < block.Length; i++)
             {
                 if ((mask[i] == 1))
                 {
-                    //get the colour
                     int red = block[i].R, green = block[i].G,
                     blue = block[i].B;
 
-                    //negate their LSBs
                     red = negateLSB(red);
                     green = negateLSB(green);
                     blue = negateLSB(blue);
 
-                    //build a new pixel
                     int newpixel = (0xff << 24) | ((red & 0xff) << 16)
                     | ((green & 0xff) << 8) | ((blue & 0xff));
 
-                    //change the block pixel
+
                     block[i] = Color.FromArgb(newpixel);
                 }
                 else if (mask[i] == -1)
                 {
-                    //get the colour
+
                     int red = block[i].R, green = block[i].G,
                     blue = block[i].B;
 
-                    //negate their LSBs
                     red = invertLSB(red);
                     green = invertLSB(green);
                     blue = invertLSB(blue);
 
-                    //build a new pixel
                     int newpixel = (0xff << 24) | ((red & 0xff) << 16)
                     | ((green & 0xff) << 8) | ((blue & 0xff));
 
-                    //change the block pixel
                     block[i] = Color.FromArgb(newpixel);
                 }
             }
@@ -638,12 +544,7 @@ namespace Steganalysis
         }
 
 
-        /**
-         * Negates the LSB of a given byte (stored in an int).
-         *
-         * @param abyte The byte to negate the LSB of.
-         * @return The byte with negated LSB.
-         */
+        // Отменяет значение LSB для данного байта
         private int negateLSB(int abyte)
         {
             int temp = abyte & 0xfe;
@@ -654,12 +555,7 @@ namespace Steganalysis
         }
 
 
-        /**
-         * Inverts the LSB of a given byte (stored in an int).
-         * 
-         * @param abyte The byte to flip.
-         * @return The byte with the flipped LSB.
-         */
+        // Инвертирует LSB данного байта (сохраненного в виде int).
         private int invertLSB(int abyte)
         {
             if (abyte == 255)
@@ -670,12 +566,7 @@ namespace Steganalysis
         }
 
 
-        /**
-         * Inverts a mask.
-         *
-         * @param mask The mask to invert.
-         * @return The flipped mask.
-         */
+        // Переворачивает маску.
         private int[] invertMask(int[] mask)
         {
             for (int i = 0; i < mask.Length; i++)

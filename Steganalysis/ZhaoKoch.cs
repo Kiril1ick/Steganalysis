@@ -44,6 +44,7 @@ namespace Steganalysis
             return result;
         }
 
+        // Рассчет данных для графика
         public double[] chartData(Image modifImage)
         {
             Bitmap modifPicture = new Bitmap(modifImage);
@@ -95,7 +96,8 @@ namespace Steganalysis
             return c;
         }
 
-        public double[] testAnalys(double[] data)
+        // Начало анализа
+        public double[] Analys(double[] data)
         {
             double[] result = new double[2];
 
@@ -124,11 +126,14 @@ namespace Steganalysis
             return temp;
         }
 
+        // Поиск коэффициентов
         double FindCoefficient(int arg)
         {
             if (arg == 0) return 1.0 / Math.Sqrt(2);
             return 1;
         }
+
+        // Рассчет коэффициентов дискретного косинусного преобразования
         double[,] dkp(byte[,] one)
         {
             int n = one.GetLength(0);
@@ -153,6 +158,7 @@ namespace Steganalysis
             return two;
         }
 
+        // Разделение на блоки
         private void separation(byte[,] B, List<byte[,]> C, int sizeX, int sizeY, int sizeSegment)
         {
             int Nx = sizeX / sizeSegment;
@@ -175,7 +181,7 @@ namespace Steganalysis
             Console.WriteLine(mess);
         }
 
-
+        // Расчет разности коэффициентов
         double TestFoo(double[,] bloc)
         {
             double result = Math.Abs(Math.Abs(bloc[p1.X, p1.Y]) - Math.Abs(bloc[p2.X, p2.Y]));
@@ -183,6 +189,7 @@ namespace Steganalysis
             return result;
         }
 
+        // Инициализация размера блока
         private void DeterminePointsOfCoefficients()
         {
             if (SizeOfSegment == 2)
